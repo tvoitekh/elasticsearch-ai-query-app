@@ -11,7 +11,7 @@ pip install -r requirements.txt
     docker pull docker pull docker.elastic.co/elasticsearch/elasticsearch:7.10.2
     docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.10.2
 
-### To initialize an index and store the example data in a cluster, go to /Notebooks and run the Playground notebook
+### To initialize an index and store the example data in a cluster, navigate to /notebooks and run the ProdIndexPlayground.ipynb notebook
 
 **Use elasticsearch:7.10.2 for compatibility with ARM based Macs (otherwise, there are dedicated versions with -arm64 suffix, e.g. docker.elastic.co/elasticsearch/elasticsearch:8.12.2-arm64)**
 

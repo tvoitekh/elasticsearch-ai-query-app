@@ -1,0 +1,1 @@
+{"query":{"range":{"actual_price":{"gte":500,"lte":1000}}}}

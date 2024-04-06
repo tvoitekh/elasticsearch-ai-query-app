@@ -1,0 +1,1 @@
+{"query":{"bool":{"must":[{"range":{"discount_price":{"lt":1000}}}],"filter":[{"term":{"main_category.keyword":"electric stove"}}]}}}

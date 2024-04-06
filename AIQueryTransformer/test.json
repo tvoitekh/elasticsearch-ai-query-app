@@ -1,0 +1,1 @@
+{"query":{"bool":{"must":[{"range":{"actual_price":{"gte":500,"lte":1000}}},{"match":{"name":"electric stove"}},{"match":{"name":"kettle"}}]}}}

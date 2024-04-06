@@ -1,0 +1,1 @@
+{"query":{"bool":{"must":[{"match":{"main_category.keyword":"electric kettle"}},{"range":{"actual_price":{"lte":1000}}}]}}}

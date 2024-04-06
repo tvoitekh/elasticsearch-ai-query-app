@@ -1,0 +1,1 @@
+{"query":{"bool":{"must":[{"terms":{"main_category.keyword":["electric stove","kettle"]}}],"filter":[{"range":{"actual_price.keyword":{"lt":"average_price"}}}]}}}

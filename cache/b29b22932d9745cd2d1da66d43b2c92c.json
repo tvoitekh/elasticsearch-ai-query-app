@@ -1,0 +1,1 @@
+{"query":{"bool":{"must":[{"bool":{"should":[{"match":{"name":"electric stove"}},{"match":{"name":"kettle"}}]}},{"range":{"actual_price":{"lte":"100"}}}]}}}

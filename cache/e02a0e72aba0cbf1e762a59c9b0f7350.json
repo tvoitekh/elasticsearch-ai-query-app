@@ -1,0 +1,1 @@
+{"query":{"bool":{"must":[{"bool":{"should":[{"match":{"name":"bake"}},{"match":{"name":"baking"}}]}},{"match":{"main_category":"appliances"}}]}}}

@@ -1,0 +1,13 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "title": "refrigerator dishwasher microwave blender"
+          }
+        }
+      ]
+    }
+  }
+}

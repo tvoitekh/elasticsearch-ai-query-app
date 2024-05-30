@@ -1,0 +1,1 @@
+"query":{"bool":{"must":[{"bool":{"should":[{"match":{"name":"electric kettle"}},{"match":{"name":"toaster"}},{"match":{"name":"blender"}},{"match":{"name":"microwave"}}]}}]}}}

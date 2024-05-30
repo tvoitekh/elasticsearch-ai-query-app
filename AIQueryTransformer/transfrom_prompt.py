@@ -23,6 +23,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+prompt_file_path = os.path.join(os.path.dirname(__file__), '..', 'prompts', 'base_prompt.txt')
+
+# Read the prompt file content
+with open(prompt_file_path, 'r') as file:
+    base_prompt = file.read()
+    
 
 class OpenAIDSL:
 
@@ -33,42 +39,99 @@ class OpenAIDSL:
     
     Example:
     
-    User request:
+    Example Request 1:
+    I am looking for contemporary stainless steel handles for compact coolers that will give my fridge a finished look.
+
+    Desired Elasticsearch DSL Response 1:
+
+    {{
+    "query": {{
+        "bool": {{
+        "must": [
+            {{
+            "match": {{
+                "title": "stainless steel handles"
+            }}
+            }},
+            {{
+            "bool": {{
+                "should": [
+                {{
+                    "match": {{
+                    "description": "contemporary"
+                    }}
+                }},
+                {{
+                    "match": {{
+                    "description": "compact coolers"
+                    }}
+                }},
+                {{
+                    "match": {{
+                    "description": "finished look"
+                    }}
+                }}
+                ]
+            }}
+            }}
+        ]
+        }}
+    }}
+    }}
+    
+    Example Request 2:
     
     I want to buy an electric stove or a kettle with price less than 2000
     
-    Your response:
+    Desired Elasticsearch DSL Response 2:
     
-    "query": {
+    {
+  "query": {
     "bool": {
-        "must": [
+      "must": [
         {
-            "range": {
-            "actual_price": {
-                "lt": 2000
-            }
-            }
+          "bool": {
+            "should": [
+              { "match": { "name": "electric stove" } },
+              { "match": { "name": "kettle" } }
+            ]
+          }
         },
         {
-            "bool": {
-            "should": [
-                {
-                "match": {
-                    "name": "electric stove"
-                }
-                },
-                {
-                "match": {
-                    "name": "electric kettle"
-                }
-                }
-            ]
+          "range": {
+            "actual_price": {
+              "lt": 2000
             }
+          }
         }
-        ]
+      ]
     }
+  }
+}
+    
+    Example Request 3:
+    I want to buy refrigerator, dishwasher, microwave, blender
+    
+    Desired Elasticsearch DSL Response 3:
+    {
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "bool": {
+            "should": [
+              { "match": { "name": "refrigerator" } },
+              { "match": { "name": "dishwasher" } },
+              { "match": { "name": "microwave" } },
+              { "match": { "name": "blender" } }
+            ]
+          }
+        }
+      ]
     }
-    """
+  }
+}
+"""
 
     def __init__(
         self,
@@ -97,7 +160,13 @@ class OpenAIDSL:
             raise e
 
     def extract_items_from_request(self, request):
-        prompt = f"You are a helpful assistant, and your main job is to suggest customers a list of products or categories based on their needs. You need to be concise and professional in your response. The user request is as follows: \"{request}\"."
+        prompt = f"""
+        You are a helpful assistant, and your main job is to suggest customers a list of products or categories based on their needs. 
+        Please output only the list of products (and prices only if desired prices are specified by the user). Do not include any additional information, explanations, or polite phrases.
+        Format your response as a comma-separated list of products. Example: electric kettle, stove, kitchen knife.
+
+        The user request is as follows: "{request}"
+        """
 
         try:
             response = openai.ChatCompletion.create(
@@ -110,6 +179,47 @@ class OpenAIDSL:
             items = response['choices'][0]['message']['content']
             items = [item.strip() for item in items.split(',')]
             return items
+
+        except openai.OpenAIError as e:
+            raise e
+
+    def assess_clarity_of_request(self, request):
+        prompt = f"""
+        You are an assistant that determines whether a user's request for product suggestions is clear or ambiguous. 
+        If the request mentions particular products and/or prices without any ambiguous phrases, such as "most common kitchen appliances", respond with "clear". If the request is ambiguous or unclear, respond with "unclear".
+        
+        Example 1:
+        
+        I want to buy refrigerator, dishwasher, microwave, blender
+        
+        Expected response:
+        
+        "clear"
+        
+        Example 2:
+        
+        give me 4 most common kitchen applicances
+        
+        Expected response:
+        
+        "unclear"
+        
+        
+        
+
+        The user request is as follows: "{request}"
+        """
+
+        try:
+            response = openai.ChatCompletion.create(
+                model=self.model,
+                temperature=0.0,
+                max_tokens=10,
+                messages=[{"role": "user", "content": prompt}],
+            )
+
+            clarity = response['choices'][0]['message']['content'].strip().lower()
+            return clarity
 
         except openai.OpenAIError as e:
             raise e
@@ -204,19 +314,29 @@ if __name__ == "__main__":
 
     mapping = openai_dsl.get_mapping('amazon-products-index')
     print(mapping)
-    prompt = 'provide me 4 most common items for kitchen'
+    prompt = 'Give me the most common appliances if I want to bake something'
     
-    # Extract relevant items
-    items = openai_dsl.extract_items_from_request(prompt)
-    print(f"Extracted items: {items}")
+    # Assess clarity of the initial request
+    clarity = openai_dsl.assess_clarity_of_request(prompt)
     
-    # Construct a detailed prompt using the extracted items
-    detailed_prompt = f"I want to buy {', '.join(items)}"
+    if clarity == "unclear":
+        # Extract relevant items
+        items = openai_dsl.extract_items_from_request(prompt)
+        print(f"Extracted items: {items}")
+        
+        # Construct a detailed prompt using the extracted items
+        detailed_prompt = f"I want to buy {', '.join(items)}"
+        
+        print(detailed_prompt)
+        
+        # Generate Elasticsearch DSL query
+        query = openai_dsl.chat_gpt(detailed_prompt, mapping)
+    else:
+        # Generate Elasticsearch DSL query directly from the original prompt
+        query = openai_dsl.chat_gpt(prompt, mapping)
     
-    # Generate Elasticsearch DSL query
-    query = openai_dsl.chat_gpt(detailed_prompt, mapping)
     print(query)
     
     # Perform the search
-    search_res = openai_dsl.search('amazon-products-index', detailed_prompt)
+    search_res = openai_dsl.search('amazon-products-index', prompt)
     print(search_res)

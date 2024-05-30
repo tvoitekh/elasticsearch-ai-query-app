@@ -1,0 +1,1 @@
+{"query":{"bool":{"must":[{"range":{"actual_price":{"lt":2000}}},{"bool":{"should":[{"match":{"name":"Cutting board"}},{"match":{"name":"Non-stick frying pan"}},{"match":{"name":"Chef's knife"}},{"match":{"name":"Mixing bowls"}}]}}]}}}

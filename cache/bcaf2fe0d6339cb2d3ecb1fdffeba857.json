@@ -1,0 +1,22 @@
+{
+"query": {
+    "bool": {
+    "must": [
+        {
+        "bool": {
+            "should": [
+            { "match": { "name": "oven" } },
+            { "match": { "name": "mixer" } },
+            { "match": { "name": "baking sheet" } },
+            { "match": { "name": "measuring cups" } },
+            { "match": { "name": "mixing bowls" } },
+            { "match": { "name": "whisk" } },
+            { "match": { "name": "spatula" } },
+            { "match": { "name": "baking pans" } }
+            ]
+        }
+        }
+    ]
+    }
+}
+}

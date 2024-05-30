@@ -1,0 +1,31 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "range": {
+            "price.value": {
+              "lt": 2000
+            }
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "match": {
+                  "title": "electric stove"
+                }
+              },
+              {
+                "match": {
+                  "title": "electric kettle"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

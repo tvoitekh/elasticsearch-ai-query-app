@@ -1,0 +1,1 @@
+{"query":{"bool":{"must":[{"bool":{"should":[{"match":{"name":"dishwasher"}}]}},{"range":{"actual_price":{"lt":5000}}}]}}}

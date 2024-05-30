@@ -1,0 +1,34 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "title": "stainless steel handles"
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "match": {
+                  "description": "contemporary"
+                }
+              },
+              {
+                "match": {
+                  "description": "compact coolers"
+                }
+              },
+              {
+                "match": {
+                  "description": "finished look"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,98 @@
+Translate the user's request into a valid Elasticsearch DSL query. Use the given format and handle the user's request delicately, focusing on the product specifics in the 'title' and any descriptive aspects in the 'description' or 'features'. Extract key elements for 'must' conditions in 'title' and 'should' conditions for non-critical but relevant terms in 'description' or 'features'. Compress the JSON output by removing unnecessary spaces.
+
+Available fields:
+
+"title": str - Enter the main product title here.
+"inStock": boolean - true or false.
+"brand": str - brand name.
+"price.value": float - product cost.
+"stars": float - product rating.
+"description": str - general product description.
+"features": str - detailed description of features.
+"breadCrumbs": str - category path
+
+Translation guidance:
+Use user's request: {user_query}
+Use exact terms in 'title' for main items.
+For descriptive properties, utilize word-by-word search in 'description' and 'features'.
+Use 'range' for numerical fields like 'price.value'.
+For describing category, use "breadCrumbs". The smallest subcategories are {smallest_subcategories}. Use notation for search by wildcard like for example "*›Coffee Machines". The delimiter is ›. If an item is an additional element to another main product (like "handle" for "fridge")
+For requests mentioning multiple features or products, use 'bool' with 'should' to allow for flexible matching.
+
+Example Request 1:
+"I am looking for contemporary stainless steel handles for compact coolers that will give my fridge a finished look."
+
+Desired Elasticsearch DSL Response 1:
+
+{{
+  "query": {{
+    "bool": {{
+      "must": [
+        {{
+          "match": {{
+            "title": "stainless steel handles"
+          }}
+        }},
+        {{
+          "bool": {{
+            "should": [
+              {{
+                "match": {{
+                  "description": "contemporary"
+                }}
+              }},
+              {{
+                "match": {{
+                  "description": "compact coolers"
+                }}
+              }},
+              {{
+                "match": {{
+                  "description": "finished look"
+                }}
+              }}
+            ]
+          }}
+        }}
+      ]
+    }}
+  }}
+}}
+
+
+
+Example Request 2:
+
+"I want to buy an electric stove or a kettle with price less than 2000"
+    
+Desired Elasticsearch DSL Response 2:
+    
+"query": {
+"bool": {
+    "must": [
+    {
+        "range": {
+        "actual_price": {
+            "lt": 2000
+        }
+        }
+    },
+    {
+        "bool": {
+        "should": [
+            {
+            "match": {
+                "name": "electric stove"
+            }
+            },
+            {
+            "match": {
+                "name": "electric kettle"
+            }
+            }
+        ]
+        }
+    }
+    ]
+}
+}

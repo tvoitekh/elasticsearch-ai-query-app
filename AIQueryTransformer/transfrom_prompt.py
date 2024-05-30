@@ -97,9 +97,7 @@ class OpenAIDSL:
             raise e
 
     def extract_items_from_request(self, request):
-        prompt = f"You are a helpful assitant, and your main job is to suggest customers a list of products based on their needs. You need to be concise and professional in your response, and you must not include anything other than a list of products separated by commas in your response. The user request is as follows: \"{request}\"."
-
-        print(prompt)
+        prompt = f"You are a helpful assistant, and your main job is to suggest customers a list of products or categories based on their needs. You need to be concise and professional in your response. The user request is as follows: \"{request}\"."
 
         try:
             response = openai.ChatCompletion.create(
@@ -110,9 +108,7 @@ class OpenAIDSL:
             )
 
             items = response['choices'][0]['message']['content']
-
             items = [item.strip() for item in items.split(',')]
-
             return items
 
         except openai.OpenAIError as e:
@@ -147,13 +143,11 @@ class OpenAIDSL:
 
     def chat_gpt(self, prompt, mapping):
         prompt = self.base_prompt % (mapping.strip(), prompt.strip())
-        print(prompt)
         try:
             response = openai.ChatCompletion.create(
                 model=self.model,
                 temperature=0.0,
                 max_tokens=4000,
-                # Pass the message as a list of dictionaries
                 messages=[{"role": "user", "content": prompt}],
             )
 
@@ -210,8 +204,19 @@ if __name__ == "__main__":
 
     mapping = openai_dsl.get_mapping('amazon-products-index')
     print(mapping)
-    prompt = 'I want to rennovate my kitchen. I want to buy an oven with a price within reasonable range, but I am not sure about the range. Could you come up with it yourself?'
-    query = openai_dsl.chat_gpt(prompt, mapping)
-    search_res = openai_dsl.search('amazon-products-index', prompt)
+    prompt = 'provide me 4 most common items for kitchen'
+    
+    # Extract relevant items
+    items = openai_dsl.extract_items_from_request(prompt)
+    print(f"Extracted items: {items}")
+    
+    # Construct a detailed prompt using the extracted items
+    detailed_prompt = f"I want to buy {', '.join(items)}"
+    
+    # Generate Elasticsearch DSL query
+    query = openai_dsl.chat_gpt(detailed_prompt, mapping)
     print(query)
+    
+    # Perform the search
+    search_res = openai_dsl.search('amazon-products-index', detailed_prompt)
     print(search_res)

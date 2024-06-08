@@ -68,7 +68,6 @@ def pad_sequences(sequences, pad_idx):
 input_pad_sequences = pad_sequences(input_sequences, input_vocab['<pad>'])
 output_pad_sequences = pad_sequences(output_sequences, output_vocab['<pad>'])
 
-# Create datasets
 input_data = input_pad_sequences
 output_data = output_pad_sequences[:, :-1]
 target_data = output_pad_sequences[:, 1:]
@@ -99,18 +98,11 @@ class Seq2Seq(nn.Module):
         outputs = self.fc(dec_outputs)
         return outputs
 
-# Define the model parameters
 embedding_dim = 256
 hidden_dim = 512
-
-# Instantiate the model
 model = Seq2Seq(input_vocab_size, output_vocab_size, embedding_dim, hidden_dim)
-
-# Create dataloaders
 dataset = TensorDataset(input_data, output_data, target_data)
 dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
-
-# Define optimizer and loss function
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 criterion = nn.CrossEntropyLoss(ignore_index=pad_idx)
 
@@ -162,17 +154,14 @@ def test_model_with_bleu(model, data_path, input_vocab, output_vocab, device='cp
     """
     Load test data, generate predictions using the model, and calculate BLEU score.
     """
-    # Load test data
     test_df = pd.read_csv(data_path)
     
-    # Ensure all output data is treated as string and handle missing data
     test_df['output'] = test_df['output'].fillna('')  # Replace NaN with empty string
     test_df['output'] = test_df['output'].apply(str)  # Ensure all data is treated as string
 
     test_inputs = test_df['input'].tolist()
     test_references = [word_tokenize(ref.lower()) for ref in test_df['output'].tolist()]
 
-    # Prepare model for inference
     model.eval()
     model.to(device)
     predictions = []
@@ -190,6 +179,6 @@ def test_model_with_bleu(model, data_path, input_vocab, output_vocab, device='cp
     return bleu_score
 
 
-data_path = 'test_data.csv'  # Update this path to your actual test data CSV file
+data_path = 'test_data.csv' 
 bleu_score = test_model_with_bleu(model, data_path, input_vocab, output_vocab)
 print("BLEU Score:", bleu_score)

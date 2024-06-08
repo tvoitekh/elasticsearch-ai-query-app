@@ -15,7 +15,6 @@ def extract_product_info(sentence):
     # Formatting the output as a string with product name and price
     return f"product name: {product_name}, price: {price}"
 
-# Load your data
 data = pd.read_csv('test_data.csv')
 
 # Apply the function to extract information

@@ -161,9 +161,11 @@ class OpenAIDSL:
 
     def extract_items_from_request(self, request):
         prompt = f"""
-        You are a helpful assistant, and your main job is to suggest customers a list of products or categories based on their needs. 
-        Please output only the list of products (and prices only if desired prices are specified by the user). Do not include any additional information, explanations, or polite phrases.
-        Format your response as a comma-separated list of products. Example: electric kettle, stove, kitchen knife.
+        You are a helpful assistant, and your main job is to suggest customers a list of products or categories based on their needs.
+        Please output only the list of products (and prices only if desired prices are specified by the user).
+        Do not include any additional information, explanations, or polite phrases.
+        Format your response as a comma-separated list of product:price pairs if prices are specified.
+        Example: electric kettle:30, stove:100, kitchen knife:15
 
         The user request is as follows: "{request}"
         """
@@ -178,7 +180,16 @@ class OpenAIDSL:
 
             items = response['choices'][0]['message']['content']
             items = [item.strip() for item in items.split(',')]
-            return items
+            
+            products_and_prices = []
+            for item in items:
+                if ':' in item:
+                    product, price = item.split(':')
+                    products_and_prices.append({'product': product.strip(), 'price': price.strip()})
+                else:
+                    products_and_prices.append({'product': item.strip(), 'price': None})
+
+            return products_and_prices
 
         except openai.OpenAIError as e:
             raise e
@@ -314,18 +325,26 @@ if __name__ == "__main__":
 
     mapping = openai_dsl.get_mapping('amazon-products-index')
     print(mapping)
-    prompt = 'Give me the most common appliances if I want to bake something'
+    prompt = 'I want to buy an oven with a price less than 2000'
     
     # Assess clarity of the initial request
     clarity = openai_dsl.assess_clarity_of_request(prompt)
     
     if clarity == "unclear":
         # Extract relevant items
-        items = openai_dsl.extract_items_from_request(prompt)
-        print(f"Extracted items: {items}")
+        extracted_items = openai_dsl.extract_items_from_request(prompt)
+        prediction_items = []
+        for item in extracted_items:
+            if item['price']:
+                prediction_items.append(f"product name: {item['product']}, price: {item['price']}")
+            else:
+                prediction_items.append(f"product name: {item['product']}")
+        
+        items = ', '.join(prediction_items)
+        print(items)
         
         # Construct a detailed prompt using the extracted items
-        detailed_prompt = f"I want to buy {', '.join(items)}"
+        detailed_prompt = f"I want to buy {items}"
         
         print(detailed_prompt)
         

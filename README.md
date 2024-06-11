@@ -21,8 +21,17 @@ Navigate to ```/notebooks``` and run the ```ProdIndexPlayground.ipynb``` noteboo
 
 Use ```elasticsearch:7.10.2``` for compatibility with ARM based Macs (otherwise, there are dedicated versions with -arm64 suffix, e.g. ```docker.elastic.co/elasticsearch/elasticsearch:8.12.2-arm64```)
 
-## Execute the script to obtain the response
+## Navigate to the script directory
 ```bash
 cd AIQueryTransformer
+```
+
+## Execute the script to obtain the response
+```bash
 python transform_prompt.py
 ```
+## Evaluate the solution on test data
+```bash
+python test_data.py
+```
+
